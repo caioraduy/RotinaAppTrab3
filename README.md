@@ -105,36 +105,7 @@ suspend fun buscarPorId(id: Int) : Rotina?
 
 ## 5. Print ou vídeo mostrando o teste de persistência: adicionar um item, fechar o app, reabrir, e o item continuar lá
 
-**🎬 Vídeo:** _(colar aqui o link do vídeo)_
-
-**🖼️ Prints:**
-
-> Os prints foram gerados por um teste automático que roda o app de verdade num Android simulado no computador.
-
-**1. Adicionando uma rotina:**
-
-<p>
-  <img src="docs/prints/01-adicionando-rotina.png" width="220" alt="Formulário de nova rotina">
-  <img src="docs/prints/02-rotina-salva-na-lista.png" width="220" alt="Rotina salva na lista">
-  <img src="docs/prints/03-detalhes-buscados-pelo-id.png" width="220" alt="Detalhes da rotina">
-</p>
-
-**2. Antes de fechar o app:**
-
-<p>
-  <img src="docs/prints/04-antes-de-fechar-rotinas.png" width="220" alt="Rotinas antes de fechar o app">
-  <img src="docs/prints/05-antes-de-fechar-metas.png" width="220" alt="Metas antes de fechar o app">
-  <img src="docs/prints/06-antes-de-fechar-perfil.png" width="220" alt="Perfil antes de fechar o app">
-</p>
-
-**3. Depois de fechar e abrir de novo (os dados continuam lá ✅):**
-
-<p>
-  <img src="docs/prints/07-depois-de-reabrir-rotinas.png" width="220" alt="Rotinas depois de reabrir o app">
-  <img src="docs/prints/08-depois-de-reabrir-metas.png" width="220" alt="Metas depois de reabrir o app">
-  <img src="docs/prints/09-depois-de-reabrir-perfil.png" width="220" alt="Perfil depois de reabrir o app">
-  <img src="docs/prints/10-depois-de-reabrir-detalhes.png" width="220" alt="Detalhes depois de reabrir o app">
-</p>
+**🎬 Vídeo:** *https://youtu.be/iRxCBf9muUg
 
 ---
 
