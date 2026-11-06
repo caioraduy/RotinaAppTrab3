@@ -1,111 +1,68 @@
-# 🌱 RotinApp — Trabalho 4: organização em camadas
+# RotinApp - Trabalho 4
 
-App Android feito em **Kotlin com Jetpack Compose**, continuação do Trabalho 3.
+Continuação do RotinApp (Kotlin + Jetpack Compose). No Trabalho 3 eu coloquei o banco Room no app. Neste trabalho o app continua fazendo as mesmas coisas, mas reorganizei o código em camadas (Model, Repository, ViewModel e View), usando Flow, UiState e ViewModelFactory. Usei como base o exemplo de Filmes em MVVM (banco-03-mvvm) visto em aula.
 
-O app faz **exatamente o mesmo** que no Trabalho 3 (rotinas, atividades, metas e perfil salvos no banco **Room**). O que mudou foi a **organização do código**: agora ele está separado em camadas — **Model, Repository, ViewModel e View** — com `Flow`, `UiState` e `ViewModelFactory`, seguindo o exemplo **banco-03-mvvm** (CRUD de Filmes em MVVM) do professor.
+## Como rodar
 
-> 📚 Projeto acadêmico individual — Universidade Positivo — Desenvolvimento de Aplicativos Móveis
+1. Clonar o repositório (`git clone https://github.com/caioraduy/RotinaAppTrab3.git`) ou baixar o zip.
+2. No Android Studio, ir em File > Open e abrir a pasta do projeto.
+3. Esperar o Gradle Sync terminar.
+4. Criar um emulador em Tools > Device Manager (se ainda não tiver).
+5. Selecionar "app" e o emulador e clicar em Run.
 
-🎥 **Vídeo do app funcionando:** [assistir no YouTube](https://youtu.be/iRxCBf9muUg)
+Se aparecer "Add Configuration" no lugar de "app": Run > Edit Configurations > + > Android App, escolher o módulo `My_Application.app` e dar OK.
+Se der erro de JDK no Sync: File > Settings > Build Tools > Gradle e escolher o JDK 21.
 
-📄 Documentação do Trabalho 3 (Room): [docs/trabalho3.md](docs/trabalho3.md)
-
----
-
-## ▶️ Como rodar o projeto
-
-1. Baixar o projeto (`git clone https://github.com/caioraduy/RotinaAppTrab3.git` ou baixar o `.zip` e descompactar).
-2. No Android Studio: **File > Open** e escolher a pasta do projeto (a que tem o `settings.gradle.kts`).
-3. Esperar o **Gradle Sync** terminar (barra no rodapé). Na primeira vez precisa de internet.
-4. Criar um emulador: **Tools > Device Manager** → **+** → escolher um celular (ex.: Pixel) → escolher uma versão do Android → **Finish**.
-5. Na barra de cima, escolher **app** e o emulador, e clicar em **Run ▶**.
-
-### ⚙️ Se não conseguir rodar
-
-* **Aparece "Add Configuration…" no lugar de "app":** **Run > Edit Configurations** → **+** → **Android App** → Module: `My_Application.app` → **OK**.
-* **Erro de Java/JDK no Sync:** **File > Settings > Build, Execution, Deployment > Build Tools > Gradle** → **Gradle JDK** → escolher um **JDK 21**.
-* **Falta plataforma/SDK:** clicar no link que o Android Studio mostra para instalar e sincronizar de novo.
-
----
-
-## 🧱 As camadas
-
-```mermaid
-flowchart LR
-    V["View<br/>(Tela...kt)"] -- "eventos: onSave, onEdit, onDelete..." --> VM["ViewModel<br/>(...ViewModel.kt)"]
-    VM -- "uiState (StateFlow)" --> V
-    VM -- "viewModelScope.launch" --> R["Repository<br/>(data/repository)"]
-    R --> D["DAO + Room<br/>(data/local)"]
-    D -- "Flow" --> R
-    R -- "Flow" --> VM
-```
-
-| Camada | Onde está | O que faz |
-|---|---|---|
-| **Model** | `data/local/` | `@Entity` (Rotina, Atividade, Meta, Perfil), `@Dao` e `AppDatabase` |
-| **Repository** | `data/repository/` | única porta de entrada dos dados; só repassa para o DAO |
-| **ViewModel** | `viewmodel/` (`...ViewModel`, `...UiState`, `...ViewModelFactory`) | guarda o `UiState` da tela e chama o Repository |
-| **View** | `ui/` (`Tela...kt`) | telas `@Composable`: só leem o `uiState` e chamam o ViewModel |
-
-Organização igual ao exemplo do professor (`data/local`, `data/repository`, mesmo padrão de UiState/ViewModel/Factory), com os ViewModels num pacote `viewmodel` próprio, como pede o checklist do enunciado:
+## Organização do projeto
 
 ```text
 app/src/main/java/com/example/myapplication/
-├── MainActivity.kt                 → cria o banco e os Repositories e chama a navegação
+├── MainActivity.kt          cria o banco e os repositories e chama a navegação
 ├── data/
-│   ├── local/                      → MODEL (Room)
-│   │   ├── Rotina.kt, Atividade.kt, Meta.kt, Perfil.kt   (@Entity)
-│   │   ├── RotinaDAO.kt, AtividadeDAO.kt, MetaDAO.kt, PerfilDAO.kt (@Dao)
-│   │   ├── AppDatabase.kt          (@Database — Singleton)
-│   │   └── Historico.kt            (histórico em memória, igual ao T3)
-│   └── repository/                 → REPOSITORY
+│   ├── local/               Room: entidades, DAOs e AppDatabase
+│   │   ├── Rotina.kt, Atividade.kt, Meta.kt, Perfil.kt
+│   │   ├── RotinaDAO.kt, AtividadeDAO.kt, MetaDAO.kt, PerfilDAO.kt
+│   │   ├── AppDatabase.kt
+│   │   └── Historico.kt
+│   └── repository/
 │       ├── RotinaRepository.kt, AtividadeRepository.kt
 │       └── MetaRepository.kt, PerfilRepository.kt
-├── viewmodel/                      → VIEWMODEL (para cada tela: UiState + ViewModel + Factory)
-│   ├── ListaRotinasUiState.kt, ListaRotinasViewModel.kt, ListaRotinasViewModelFactory.kt
-│   ├── CriacaoRotinaUiState.kt, CriacaoRotinaViewModel.kt, CriacaoRotinaViewModelFactory.kt
-│   ├── DetalhesRotinaUiState.kt, DetalhesRotinaViewModel.kt, DetalhesRotinaViewModelFactory.kt
-│   ├── MetasUiState.kt, MetasViewModel.kt, MetasViewModelFactory.kt
-│   ├── PerfilUiState.kt, PerfilViewModel.kt, PerfilViewModelFactory.kt
-│   ├── HistoricoUiState.kt, HistoricoViewModel.kt, HistoricoViewModelFactory.kt
-│   ├── DesempenhoUiState.kt, DesempenhoViewModel.kt, DesempenhoViewModelFactory.kt
-│   └── ProgressoUiState.kt, ProgressoViewModel.kt, ProgressoViewModelFactory.kt
-└── ui/                             → VIEW
-    ├── AppNavegacao.kt             (NavHost: cria cada ViewModel com a sua Factory)
-    ├── RotaAbas.kt                 (nomes das rotas)
+├── viewmodel/               um UiState, um ViewModel e uma Factory para cada tela
+│   ├── ListaRotinas..., CriacaoRotina..., DetalhesRotina...
+│   ├── Metas..., Perfil..., Historico...
+│   └── Desempenho..., Progresso...
+└── ui/                      telas
+    ├── AppNavegacao.kt, RotaAbas.kt
     ├── TelaListaRotina.kt, TelaCriacao.kt, TelaRotina.kt
     ├── TelaMetas.kt, TelaPerfil.kt, TelaPerfilCont.kt
     ├── TelaHistorico.kt, TelaDesempenho.kt, Progresso.kt
-    └── theme/                      (Color.kt, Theme.kt, Type.kt)
+    └── theme/
 ```
 
----
+O caminho dos dados ficou assim:
 
-# 📝 Documentação do processo e das decisões
+Tela -> ViewModel -> Repository -> DAO -> banco
 
-## 1. Como estava o projeto no Trabalho 3, e o que mudou na reorganização?
+e a volta é pelo Flow: o banco muda, o Room avisa o Repository, o ViewModel atualiza o uiState e a tela se redesenha.
 
-**Como estava:**
+## Documentação
 
-* Quase todos os arquivos ficavam juntos no pacote principal: telas, DAOs, banco e ViewModels.
-* As `@Entity` estavam dentro de `ui/theme`, que deveria ser só do tema.
-* Cada **tela** pegava o DAO (`AppDatabase.getDatabase(context).rotinaDAO()`) e acessava o banco com `CoroutineScope(Dispatchers.IO).launch`.
-* As listas eram buscadas uma vez num `LaunchedEffect(Unit)` e, depois de inserir ou remover, a tela precisava **buscar de novo na mão**.
-* O estado das telas ficava em várias variáveis `remember { mutableStateOf(...) }` soltas.
+### 1. Como estava o projeto no Trabalho 3, e o que mudou?
 
-**O que mudou:**
+No Trabalho 3 estava quase tudo no mesmo pacote: telas, DAOs, banco e alguns ViewModels misturados. As entidades (Rotina, Atividade, Meta e Perfil) estavam dentro de `ui/theme`, o que não fazia sentido. Cada tela abria o banco, pegava o DAO e fazia as operações com `CoroutineScope(Dispatchers.IO).launch`. As listas eram carregadas uma vez no `LaunchedEffect(Unit)` e, depois de inserir ou apagar, eu tinha que buscar de novo na mão. E cada tela tinha várias variáveis `remember` soltas.
 
-* O código foi separado nos pacotes `data/local` (Room), `data/repository`, `viewmodel` e `ui`, no padrão do exemplo do professor.
-* Criei **1 Repository por Entity**. Agora **só o Repository fala com o DAO**.
-* O `buscarTodos()` de todos os DAOs passou a retornar **`Flow<List<...>>`** (não é mais `suspend`). Com isso, as listas **atualizam sozinhas** quando o banco muda.
-* Cada tela ganhou um **ViewModel** com um **`UiState`** (`_uiState` privado + `uiState` público) e uma **Factory**.
-* As telas agora só fazem duas coisas: **ler o `uiState`** (`collectAsStateWithLifecycle()`) e **chamar métodos do ViewModel**. Não têm mais DAO, `CoroutineScope` nem `Dispatchers.IO`.
-* O `OperacoesBanco.kt` foi removido (igual no exemplo do professor): a parte de acessar o DAO foi para o Repository, e o `try/catch` com `Log.e` foi para o ViewModel.
-* As funções do ViewModel seguem o padrão **`onEvento`** do exemplo: `onSave`, `onEdit`, `onDelete`, `onNomeChange`...
-* A `MainActivity` cria o banco e os Repositories e passa para a navegação; o `AppNavegacao` cria o ViewModel de cada tela com a Factory. Assim, **nenhuma tela conhece o banco nem o DAO**.
-* Também deixei o projeto no formato padrão do Android Studio: dependências no `gradle/libs.versions.toml` e `.gitignore` padrão.
+O que mudei:
 
-**Antes (Trabalho 3) — dentro da tela:**
+- separei o código nos pacotes `data/local`, `data/repository`, `viewmodel` e `ui`;
+- criei um repository para cada entidade, e agora só ele chama o DAO;
+- o `buscarTodos()` dos DAOs agora retorna `Flow<List<...>>`, então as listas atualizam sozinhas;
+- cada tela ganhou um ViewModel com um UiState (`_uiState` privado e `uiState` público) e uma Factory;
+- as telas só leem o `uiState` e chamam funções do ViewModel (`onSave`, `onEdit`, `onDelete`...), sem DAO e sem coroutine;
+- apaguei o `OperacoesBanco.kt`: o acesso ao DAO foi para os repositories e o try/catch com `Log.e` foi para os ViewModels;
+- a MainActivity cria o banco e os repositories, e o `AppNavegacao` cria o ViewModel de cada tela com a Factory;
+- passei as dependências para o `libs.versions.toml`.
+
+Antes, na tela de metas:
 
 ```kotlin
 val db = AppDatabase.getDatabase(context)
@@ -118,54 +75,37 @@ LaunchedEffect(Unit) {
 }
 ```
 
-**Depois (Trabalho 4) — a tela só observa:**
+Agora:
 
 ```kotlin
 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-// ...
+...
 items(uiState.listaDeMetas) { meta -> CardMeta(meta, onDelete = { viewModel.onDelete(meta) }, ...) }
 ```
 
----
+### 2. Como dividi os pacotes?
 
-## 2. Como decidi dividir os pacotes — o que foi para `ui`, `data`, `data.repository` e `viewmodel`?
+- `data/local`: tudo do Room, igual ao Trabalho 3 (as 4 entidades, os 4 DAOs e o AppDatabase). Coloquei o `Historico.kt` aqui também porque é um modelo de dados.
+- `data/repository`: os 4 repositories. Cada um recebe seu DAO no construtor.
+- `viewmodel`: para cada tela que usa dados tem o UiState, o ViewModel e a Factory. São 8 telas, então ficaram 8 de cada.
+- `ui`: as telas, a navegação e o tema (o `theme` agora só tem Color, Theme e Type).
 
-Segui o padrão do exemplo **banco-03-mvvm** do professor (CRUD de Filmes), com os ViewModels num pacote `viewmodel` próprio, como pede o enunciado:
-
-* **`data.local`** (o pacote `data` do enunciado) → tudo do Room, do jeito que já existia no Trabalho 3: as 4 `@Entity`, os 4 `@Dao` e o `AppDatabase`. O `Historico.kt` (histórico em memória) também foi para cá.
-* **`data.repository`** → os 4 Repositories novos (`RotinaRepository`, `AtividadeRepository`, `MetaRepository`, `PerfilRepository`). Cada um recebe o seu DAO no construtor.
-* **`viewmodel`** → para cada tela, 3 arquivos: `UiState`, `ViewModel` e `ViewModelFactory` (como `FilmesUiState`, `FilmesViewModel` e `FilmesViewModelFactory` do professor). São 8 telas que usam dados, então são 8 de cada.
-* **`ui`** → as telas `@Composable`, a navegação (`AppNavegacao.kt` e `RotaAbas.kt`) e o `theme` (que agora tem só Color, Theme e Type).
-* **`MainActivity.kt`** ficou no pacote principal: cria o banco e os Repositories e chama a navegação.
-
-O ViewModel de cada tela é criado no `AppNavegacao` com a Factory (`viewModel(factory = ...)`), recebendo o Repository que a `MainActivity` criou. A tela só recebe o ViewModel pronto — ela não cita `AppDatabase`, DAO nem Repository:
+A MainActivity ficou fora desses pacotes. Ela cria os repositories e passa para o `AppNavegacao`, que cria o ViewModel de cada tela:
 
 ```kotlin
-// AppNavegacao.kt
 composable(RotaAbas.TelaMetas) {
     TelaMetas(
         navController = navController,
         viewModel = viewModel(factory = MetasViewModelFactory(metaRepository))
     )
 }
-
-// TelaMetas.kt
-@Composable
-fun TelaMetas(navController: NavHostController, viewModel: MetasViewModel) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // ...
-}
 ```
 
-O `PerfilViewModel` é criado uma vez só no `AppNavegacao`, porque as duas telas de perfil usam o **mesmo** ViewModel.
+Assim a tela só recebe o ViewModel e não sabe nada do banco. O `PerfilViewModel` é criado uma vez só porque as duas telas de perfil usam o mesmo.
 
----
+### 3. Por que o Repository existe?
 
-## 3. Por que o Repository existe — o que ele resolve que não existia antes?
-
-Antes, **cada tela falava direto com o DAO**. Se a forma de buscar os dados mudasse, eu teria que mexer em várias telas.
-
-Agora o Repository é a **única porta de entrada para os dados**. O ViewModel pede para o Repository, e o Repository repassa para o DAO. Se um dia as rotinas vierem de uma **API** em vez do Room, **só o Repository muda** — o ViewModel e a tela continuam iguais.
+Antes cada tela falava direto com o DAO. Se eu mudasse a forma de buscar os dados, ia ter que mexer em várias telas. Agora o repository é o único lugar que acessa os dados: o ViewModel pede para ele e ele repassa para o DAO. Se um dia os dados vierem de uma API, por exemplo, só o repository muda.
 
 ```kotlin
 class MetaRepository(private val metaDAO: MetaDAO) {
@@ -177,41 +117,37 @@ class MetaRepository(private val metaDAO: MetaDAO) {
     suspend fun inserir(meta: Meta) {
         metaDAO.inserir(meta)
     }
-    // atualizar(...) e deletar(...) do mesmo jeito
+    // atualizar e deletar seguem o mesmo jeito
 }
 ```
 
-E com o **Flow** no DAO, não preciso mais buscar a lista de novo depois de inserir ou remover: o Room manda a lista nova sozinho.
+Junto com isso o DAO passou a usar Flow, então não preciso mais buscar a lista de novo depois de salvar ou apagar:
 
 ```kotlin
 @Query("SELECT * FROM metas")
-fun buscarTodos() : Flow<List<Meta>>   // não é mais suspend
+fun buscarTodos() : Flow<List<Meta>>
 ```
 
----
+### 4. O que tem no UiState de cada tela?
 
-## 4. O que tem dentro do UiState de cada tela, e por que escolhi esses campos?
+Coloquei no UiState tudo que a tela precisa para aparecer: as listas do banco, o que está escrito nos campos, se algum diálogo está aberto e as mensagens.
 
-Escolhi colocar no `UiState` **tudo o que a tela precisa para se desenhar**: as listas que vêm do banco, os textos dos formulários, o que está aberto (diálogos) e os avisos. Assim a tela não tem mais variáveis `remember` soltas.
+- `ListaRotinasUiState`: `listaDeRotinas` e `rotinaParaExcluir` (a rotina que está no diálogo de excluir).
+- `CriacaoRotinaUiState`: os campos do formulário (nome, início, fim, nome e duração da atividade), a lista de atividades antes de salvar, `idRotinaEditando` (para saber se é nova ou edição), `salvando` (desativa o botão), `rotinaSalva` (para a tela voltar) e `mensagem` (texto do Toast).
+- `DetalhesRotinaUiState`: `carregando`, a `rotina` buscada pelo id, as `atividades` dela e `atividadesConcluidas` (as que estão marcadas).
+- `MetasUiState`: `listaDeMetas`, `totalMetas` e `metasConcluidas` (para o "X de Y"), `mostrarDialogo`, `metaEmEdicao`, `nome`, `descricao` e `metaSelecionada`. O texto "Adicionar"/"Atualizar" é calculado a partir do `metaEmEdicao`, igual ao `textoBotao` do exemplo de Filmes.
+- `PerfilUiState`: `perfil`, `possuiCadastro`, `nome`, `email` e `perfilSalvo`.
+- `HistoricoUiState`: as listas de rotinas e metas e os totais.
+- `DesempenhoUiState`: nível, XP, quantidade de rotinas e atividades, tempo total, média e a rotina mais longa. As contas são feitas no ViewModel.
+- `ProgressoUiState`: nível e XP para o card de progresso (antes essa conta era feita na tela).
 
-| Tela | UiState | Campos | Por quê |
-|---|---|---|---|
-| Lista de rotinas | `ListaRotinasUiState` | `listaDeRotinas`, `rotinaParaExcluir` | a lista do banco e qual rotina está no diálogo "Excluir rotina?" |
-| Nova / editar rotina | `CriacaoRotinaUiState` | `idRotinaEditando`, `nomeRotina`, `inicio`, `fim`, `nomeAtividade`, `duracaoAtividade`, `atividades`, `salvando`, `rotinaSalva`, `mensagem` | os campos do formulário, o rascunho das atividades, se está salvando (desabilita o botão), se já salvou (a tela volta) e o texto do Toast |
-| Detalhes da rotina | `DetalhesRotinaUiState` | `carregando`, `rotina`, `atividades`, `atividadesConcluidas` | mostrar "Carregando...", a rotina buscada pelo id, as atividades dela e quais estão marcadas com ✓ |
-| Metas | `MetasUiState` | `listaDeMetas`, `totalMetas`, `metasConcluidas`, `mostrarDialogo`, `metaEmEdicao`, `nome`, `descricao`, `metaSelecionada` + calculados `tituloDialogo` e `textoBotao` | a lista, o resumo "X de Y", o diálogo de adicionar/editar e o de detalhes. Igual ao `textoBotao` do `FilmesUiState`: o texto "Adicionar"/"Atualizar" vem do `metaEmEdicao`, sem um `estouEditando` separado |
-| Perfil / cadastro | `PerfilUiState` | `perfil`, `possuiCadastro`, `nome`, `email`, `perfilSalvo` | o perfil salvo, se mostra "Olá, nome!", os campos do formulário e se já salvou |
-| Histórico | `HistoricoUiState` | `rotinas`, `metas`, `totalRotinas`, `totalMetas` | o card "Seu resumo" e a lista de atividades recentes |
-| Desempenho | `DesempenhoUiState` | `nivel`, `xpNoNivel`, `progressoNivel`, `quantidadeRotinas`, `quantidadeAtividades`, `tempoTotal`, `mediaTempoRotina`, `maiorRotina`, `rotinas`, `atividadesPorRotina`, `percentualPorRotina` | todos os números já chegam calculados pelo ViewModel; a tela só mostra |
-| Progresso | `ProgressoUiState` | `nivel`, `xp`, `xpNoNivel`, `progresso` | o card do nível (antes a conta do XP era feita na tela) |
-
-Exemplo do padrão usado em todos os ViewModels:
+Todos os ViewModels seguem o mesmo jeito:
 
 ```kotlin
 class MetasViewModel(private val metaRepository: MetaRepository) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MetasUiState())          // só o ViewModel altera
-    val uiState: StateFlow<MetasUiState> = _uiState.asStateFlow()    // a tela só lê
+    private val _uiState = MutableStateFlow(MetasUiState())
+    val uiState: StateFlow<MetasUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -233,27 +169,23 @@ class MetasViewModel(private val metaRepository: MetaRepository) : ViewModel() {
 }
 ```
 
----
+### 5. Alguma coisa quebrou durante a reorganização?
 
-## 5. Alguma funcionalidade quebrou durante a reorganização? Como encontrei e corrigi?
+No final ficou tudo funcionando: testei adicionar, listar, editar, remover, fechar e abrir o app de novo. Mas no meio do caminho algumas coisas quebraram:
 
-No final **nada ficou quebrado**: testei o fluxo completo do Trabalho 3 (adicionar, listar, editar, remover, fechar e reabrir o app) e tudo continua funcionando. Mas no caminho estes pontos quebraram ou precisaram mudar:
+- quando tirei as entidades de `ui/theme`, vários arquivos pararam de compilar por causa dos imports. Fui corrigindo arquivo por arquivo;
+- o `OperacoesBanco.kt` parou de funcionar porque o `buscarTodos()` deixou de ser suspend. Acabei apagando ele e passando as funções para os repositories e ViewModels;
+- depois de salvar uma rotina, a tela mostrava o Toast e voltava usando `withContext(Dispatchers.Main)`, que não podia mais ficar na tela. Resolvi colocando `mensagem` e `rotinaSalva` no UiState, e a tela reage com `LaunchedEffect`;
+- ao voltar da edição para a tela de detalhes, ela podia mostrar o nome antigo, porque o ViewModel dos detalhes continua vivo. Fiz o `buscarPorId` também retornar Flow, e aí ela atualiza sozinha;
+- no perfil, como as duas telas usam o mesmo ViewModel, o `perfilSalvo` ficava true e a tela de cadastro fechava sozinha na próxima vez. Coloquei para ele voltar a false quando abre o cadastro e depois de voltar;
+- quando mudei os nomes das funções para o padrão `onSave`, `onEdit`, `onDelete` (igual ao exemplo de Filmes), tive que trocar as chamadas nas telas também;
+- apareceram avisos no build de ícones antigos (`Icons.Filled.ArrowBack` e outros) e do Room sobre exportar o schema. Troquei pelos ícones `AutoMirrored` e coloquei `exportSchema = false`.
 
-* **Ao mover as Entities de `ui/theme` para `data`, vários arquivos pararam de compilar** (os `import ...ui.theme.Rotina` não existiam mais). → Corrigi os imports em todos os arquivos.
-* **O `OperacoesBanco.kt` parou de funcionar**, porque o `buscarTodos()` deixou de ser `suspend` e passou a retornar `Flow`. → Removi o arquivo: o acesso ao DAO foi para os Repositories, e o `try/catch` com `Log.e` foi para os ViewModels.
-* **O Toast e o `popBackStack()` depois de salvar** ficavam dentro de `withContext(Dispatchers.Main)` na tela, o que não pode mais existir. → O ViewModel agora coloca `mensagem` e `rotinaSalva` no `UiState`, e a tela reage com `LaunchedEffect` (mostra o Toast e volta).
-* **Voltar da edição para os Detalhes**: o ViewModel dos Detalhes continua vivo enquanto a tela está na pilha, então se ele buscasse a rotina só uma vez, ia mostrar o nome antigo. → O `buscarPorId` também passou a retornar `Flow`, e os Detalhes atualizam sozinhos.
-* **O cadastro de perfil**: como o `PerfilViewModel` é o mesmo para as duas telas de perfil, o aviso `perfilSalvo` precisava voltar para `false`, senão a tela de cadastro fecharia sozinha na próxima vez. → Criei `onPerfilSalvoMostrado()` e `onEditarPerfil()`, que zeram esse aviso.
-* **Mudança para o padrão do professor**: quando os arquivos foram para `data/local` e `viewmodel`, todos os `import` antigos (`...data.Rotina`, `...ui.theme.Rotina`) pararam de compilar, e as chamadas na tela mudaram de nome (ex.: `viewModel.salvarMeta()` → `viewModel.onSave()`). → Corrigi os imports e os nomes, compilei de novo e repeti o teste completo.
-* **Avisos no build**: ícones antigos (`Icons.Filled.ArrowBack`, `List`, `ArrowForward`) e um aviso do Room sobre exportar o esquema. → Troquei pelos ícones `AutoMirrored` e coloquei `exportSchema = false` no `AppDatabase`.
+Fui achando esses problemas compilando no Android Studio (aba Build) e testando as telas uma por uma.
 
-**Como encontrei:** compilando no Android Studio (erros e avisos na aba **Build**) e testando cada tela de novo, como na lista abaixo.
+Prints do app funcionando igual ao Trabalho 3:
 
-### 🖼️ O app funcionando igual ao Trabalho 3
-
-> Os prints foram gerados por um teste automático que roda o app de verdade num Android simulado no computador.
-
-**Rotinas: adicionar, listar, detalhes (busca pelo id):**
+Rotinas (nova rotina, lista e detalhes):
 
 <p>
   <img src="docs/prints/trabalho4/01-nova-rotina.png" width="200" alt="Nova rotina">
@@ -261,14 +193,14 @@ No final **nada ficou quebrado**: testei o fluxo completo do Trabalho 3 (adicion
   <img src="docs/prints/trabalho4/03-detalhes.png" width="200" alt="Detalhes da rotina">
 </p>
 
-**Editar rotina (os Detalhes atualizam sozinhos pelo Flow):**
+Editando a rotina e os detalhes já atualizados:
 
 <p>
   <img src="docs/prints/trabalho4/04-editando-rotina.png" width="200" alt="Editando rotina">
   <img src="docs/prints/trabalho4/05-detalhes-atualizados.png" width="200" alt="Detalhes atualizados">
 </p>
 
-**Metas, perfil, progresso, histórico e desempenho:**
+Metas, perfil, progresso, histórico e desempenho:
 
 <p>
   <img src="docs/prints/trabalho4/06-metas.png" width="200" alt="Metas">
@@ -278,7 +210,7 @@ No final **nada ficou quebrado**: testei o fluxo completo do Trabalho 3 (adicion
   <img src="docs/prints/trabalho4/10-desempenho.png" width="200" alt="Desempenho">
 </p>
 
-**Depois de fechar e abrir o app de novo (continua persistindo ✅) e removendo a rotina:**
+Depois de fechar e abrir o app (os dados continuam) e removendo a rotina:
 
 <p>
   <img src="docs/prints/trabalho4/11-reaberto-rotinas.png" width="200" alt="Rotinas depois de reabrir">
@@ -286,45 +218,32 @@ No final **nada ficou quebrado**: testei o fluxo completo do Trabalho 3 (adicion
   <img src="docs/prints/trabalho4/13-rotina-removida.png" width="200" alt="Rotina removida">
 </p>
 
----
+### 6. Algum integrante do trio teve dificuldade?
 
-## 6. Algum integrante do trio teve dificuldade em algum ponto? Como resolveram?
+Não se aplica, fiz o trabalho sozinho.
 
-Não se aplica: o trabalho foi feito **individualmente**.
+## Checklist
 
----
+- [x] Código dividido em `ui`, `data` (`data/local`), `data.repository` e `viewmodel`
+- [x] Um repository por entidade, e só ele fala com o DAO
+- [x] `buscarTodos()` dos DAOs retorna `Flow<List<...>>`
+- [x] 8 ViewModels, cada um com seu UiState
+- [x] `_uiState` privado e `uiState` público (StateFlow) em todos
+- [x] Factories passando o repository para o ViewModel
+- [x] Telas sem DAO, `CoroutineScope` ou `Dispatchers.IO`
+- [x] App continua fazendo tudo do Trabalho 3
+- [x] Documentação com prints
 
-# ✅ Checklist do enunciado
+## Tecnologias
 
-| Item | Onde está |
-|---|---|
-| Código dividido em `ui`, `data`, `data.repository`, `viewmodel` | `ui/`, `data/local/`, `data/repository/`, `viewmodel/` |
-| 1 Repository por Entity, e só ele fala com o DAO | `data/repository/` (4 Repositories) |
-| `buscarTodos()` do DAO retorna `Flow<List<...>>` | `RotinaDAO`, `AtividadeDAO`, `MetaDAO`, `PerfilDAO` |
-| No mínimo 2 ViewModels, cada um com seu UiState | 8 ViewModels + 8 UiStates em `viewmodel/` |
-| `_uiState` privado + `uiState` público (`StateFlow`) | todos os ViewModels |
-| ViewModelFactory injetando o Repository | 8 Factories em `viewmodel/`, usadas em `ui/AppNavegacao.kt` com `viewModel(factory = ...)` |
-| Telas sem DAO, `CoroutineScope` ou `Dispatchers.IO` | todas as telas em `ui/` (o banco e os Repositories são criados na `MainActivity`) |
-| App continua fazendo tudo do Trabalho 3 | item 5 (prints) |
-| Documentação com prints/vídeo | este README |
+Kotlin, Jetpack Compose, Navigation Compose, Room 2.8.5 (KSP), Coroutines, Flow/StateFlow, ViewModel e Android Studio.
 
----
+## Referências
 
-## 🛠️ Tecnologias
+- Exemplo de aula: `banco-03-mvvm/versao_final_mvvm` (CRUD de Filmes em MVVM) e slides da Aula 21 a 23 - MVVM
+- https://developer.android.com/topic/architecture/data-layer
+- https://developer.android.com/topic/architecture/ui-layer/state-production
+- https://developer.android.com/topic/libraries/architecture/viewmodel/viewmodel-factories
+- https://developer.android.com/training/data-storage/room/async-queries
 
-Kotlin, Jetpack Compose, Navigation Compose, **Room 2.8.5** (KSP), Coroutines, **Flow / StateFlow**, **ViewModel + ViewModelProvider.Factory**, `collectAsStateWithLifecycle`, Git e Android Studio.
-
-## 📚 Referências
-
-* Exemplo do professor: `Aula Banco/banco-03-mvvm/versao_final_mvvm` (CRUD de Filmes em MVVM) e slides "Aula 21 a 23 - MVVM"
-
-* [Guia de arquitetura — camada de dados (Repository)](https://developer.android.com/topic/architecture/data-layer)
-* [Produção de estado da UI (`_uiState` / `StateFlow`)](https://developer.android.com/topic/architecture/ui-layer/state-production)
-* [Eventos da UI (avisos do ViewModel viram estado)](https://developer.android.com/topic/architecture/ui-layer/events)
-* [Criar ViewModels com dependências (Factory)](https://developer.android.com/topic/libraries/architecture/viewmodel/viewmodel-factories)
-* [Consultas assíncronas no Room (Flow)](https://developer.android.com/training/data-storage/room/async-queries)
-* [Version catalogs (`libs.versions.toml`)](https://developer.android.com/build/migrate-to-catalogs)
-
----
-
-**Universidade Positivo — Desenvolvimento de Aplicativos Móveis — Trabalho 4**
+Universidade Positivo - Desenvolvimento de Aplicativos Móveis
